@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="hamburger-menu" id="hamburgerMenu">
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+            </div>
+            <h1 class="page-title">Data Analysis Tool</h1>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- History Sidebar -->
+            <div class="history-sidebar" id="historySidebar">
+                <div class="history-label">History</div>
+                <div class="history-content" id="historyContent">
+                    <p style="color: #666; font-size: 13px;">No actions yet...</p>
+                </div>
+            </div>
+
+            <!-- Function Blocks Panel -->
+            <div class="function-blocks-panel">
+                <!-- Clean Data Block -->
+                <div class="action-block">
+                    <div class="block-header" data-block="clean">
+                        <span>Clean Data</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-content" id="cleanDropdown">
+                        <div class="dropdown-item" data-clean="highlight">Highlight Errors</div>
+                        <div class="dropdown-item" data-clean="autocorrect">Auto Correct Nulls</div>
+                        <div class="dropdown-item" data-clean="duplicates">Find & Remove Duplicates</div>
+                        <div class="dropdown-item" data-clean="empty">Remove Empty Rows</div>
+                        <div class="dropdown-item" data-clean="standardize">Standardize Format</div>
+                        
+                        <!-- Standardize sub-dropdown -->
+                        <div class="sub-dropdown" id="standardizeOptions">
+                            <div class="filter-inputs">
+                                <label>Select Column:</label>
+                                <select class="filter-input" id="standardizeColumn">
+                                    <option value="">Select Column</option>
+                                </select>
+                                <label>Format Type:</label>
+                                <select class="filter-input" id="standardizeType">
+                                    <option value="gender">Gender (M/F)</option>
+                                    <option value="date">Date (DD/MM/YYYY)</option>
+                                    <option value="phone">Phone Number</option>
+                                    <option value="case">Title Case</option>
+                                </select>
+                                <button class="apply-button" id="applyStandardize">Standardize</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Organize Block -->
+                <div class="action-block">
+                    <div class="block-header" data-block="organize">
+                        <span>Organize</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-content" id="organizeDropdown">
+                        <div id="sortContainer"></div>
+                        <button class="add-filter-btn" id="addSortBtn">+ Add Sort Column</button>
+                        <button class="apply-button" id="applySortBtn">Apply Sorting</button>
+                    </div>
+                </div>
+
+                <!-- Filter Block -->
+                <div class="action-block">
+                    <div class="block-header" data-block="filter">
+                        <span>Filter Data</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-content" id="filterDropdown">
+                        <div id="filterContainer"></div>
+                        <button class="add-filter-btn" id="addFilterBtn">+ Add Filter</button>
+                        <button class="apply-button" id="applyFilterBtn">Apply Filters</button>
+                        <button class="apply-button clear-btn" id="clearFilterBtn">Clear Filters</button>
+                    </div>
+                </div>
+
+                <!-- Visualization Block -->
+                <div class="action-block">
+                    <div class="block-header" data-block="visualization">
+                        <span>Visualization</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-content" id="visualizationDropdown">
+                        <div class="dropdown-item" data-chart="bar">Bar Chart</div>
+                        <div class="dropdown-item" data-chart="line">Line Chart</div>
+                        <div class="dropdown-item" data-chart="pie">Pie Chart</div>
+                        <div class="dropdown-item" data-chart="scatter">Scatter Plot</div>
+                        <div class="dropdown-item" data-chart="doughnut">Doughnut Chart</div>
+                        <div class="dropdown-item" data-chart="radar">Radar Chart</div>
+                        <div class="dropdown-item" data-chart="polarArea">Polar Area Chart</div>
+                        <div class="dropdown-item" data-chart="multiple">Multiple Charts</div>
+                        <div class="dropdown-item" data-chart="stats">Summary Statistics</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Panel -->
+            <div class="content-panel">
+                <!-- Upload Section -->
+                <div class="upload-section">
+                    <div class="upload-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="file-drop-zone" id="fileDropZone">
+                        <input type="file" id="fileInput" accept=".csv,.json,.xlsx,.xls" style="display: none;">
+                        <p>Drop your file here or click to browse</p>
+                        <small>Supported formats: CSV, JSON, XLSX, XLS</small>
+                    </div>
+                </div>
+
+                <!-- Display Area -->
+                <div class="display-area" id="displayArea">
+                    <div class="undo-icon" id="undoButton" title="Undo">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 7v6h6M21 17v-6h-6M3 13a9 9 0 0 1 15-6.7M21 11a9 9 0 0 1-15 6.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="download-icon" id="downloadButton" title="Download">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div id="displayContent">
+                        <p style="text-align: center; color: #666; margin-top: 100px;">Upload a file to get started</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Highlight Errors Modal -->
+    <div id="highlightErrorsModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="highlightClose">&times;</span>
+            <div class="modal-header">Highlight Errors</div>
+            <div class="modal-body">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="highlight-nulls" checked>
+                    <label>Highlight Null/Empty Values (Yellow)</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="highlight-duplicates">
+                    <label>Highlight Duplicates (Red)</label>
+                </div>
+                <div id="duplicateFieldsSection" style="display: none; margin-top: 15px;">
+                    <label style="font-weight: 600; margin-bottom: 10px; display: block;">Select fields to compare:</label>
+                    <div class="checkbox-group" id="duplicateFieldsList"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-button" id="highlightCancel">Cancel</button>
+                <button class="apply-button" id="highlightApply">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto Correct Modal -->
+    <div id="autoCorrectModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="autoCorrectClose">&times;</span>
+            <div class="modal-header">Auto Correct Null Values</div>
+            <div class="modal-body">
+                <label>Replacement Value:</label>
+                <input type="text" id="autoCorrectValue" class="filter-input" placeholder="Enter value (e.g., N/A, 0, Unknown)">
+                <p style="margin-top: 10px; font-size: 13px; color: #666;">This will replace all null/empty values.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-button" id="autoCorrectCancel">Cancel</button>
+                <button class="apply-button" id="autoCorrectApply">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Duplicates Modal -->
+    <div id="duplicatesModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="modal-close" id="duplicatesClose">&times;</span>
+            <div class="modal-header">Find & Remove Duplicates</div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; color: #666;">Select columns to check for duplicate values:</p>
+                <div class="checkbox-group" id="duplicateColumnsList"></div>
+                <div id="duplicatesResults" style="display: none; margin-top: 20px;">
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <div class="summary-stat-value" id="duplicateCount">0</div>
+                            <div class="summary-stat-label">Duplicate Rows Found</div>
+                        </div>
+                    </div>
+                    <div id="duplicatesList" class="duplicates-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-button" id="duplicatesCancel">Cancel</button>
+                <button class="apply-button" id="duplicatesFind">Find Duplicates</button>
+                <button class="apply-button" id="duplicatesRemove" style="background: #d32f2f; display: none;">Remove Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Changes Modal -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="modalTitle">Review Changes</h2>
+                <span class="modal-close" id="modalClose">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer">
+                <button class="cancel-button" id="modalCancel">Cancel</button>
+                <button class="apply-button" id="modalApply">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Modal -->
+    <div id="chartModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="chartClose">&times;</span>
+            <div class="modal-header" id="chartModalTitle">Create Chart</div>
+            <div class="modal-body" id="chartModalContent"></div>
+            <div class="modal-footer">
+                <button class="cancel-button" id="chartCancel">Cancel</button>
+                <button class="apply-button" id="chartCreate">Create Chart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multi Chart Modal -->
+    <div id="multiChartModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="modal-close" id="multiChartClose">&times;</span>
+            <div class="modal-header">Create Multiple Charts</div>
+            <div class="modal-body" id="multiChartContent"></div>
+            <button class="add-filter-btn" id="addChartConfig">+ Add Another Chart</button>
+            <div class="modal-footer">
+                <button class="cancel-button" id="multiChartCancel">Cancel</button>
+                <button class="apply-button" id="multiChartCreate">Create Charts</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="statsClose">&times;</span>
+            <div class="modal-header">Summary Statistics</div>
+            <div class="modal-body" id="statsModalContent"></div>
+            <div class="modal-footer">
+                <button class="cancel-button" id="statsCancel">Cancel</button>
+                <button class="apply-button" id="statsCalculate">Calculate</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
